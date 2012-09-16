@@ -1,0 +1,64 @@
+.form div, .form table
+{ 
+    width: 100%; 
+    padding: 0; 
+    min-height: 100px; 
+}
+
+table.fieldset td 
+{ 
+    width: 25px; 
+}
+
+table.fildset td.handle, 
+td.remove 
+{ 
+    vertical-align: middle; 
+}
+
+td.verbose-name 
+{ 
+    width: 35%;
+}
+
+td.help-text 
+{ 
+    width: 100%; 
+}
+
+.handle 
+{ 
+    vertical-align: bottom; 
+}
+
+.form.outer 
+{ 
+    display: inline-block; 
+    width: 79%; 
+}
+
+.toolbox.outer 
+{ 
+    display: inline-block; 
+    width: 20%; 
+}
+
+.inner, 
+.outer 
+{ 
+    vertical-align: top; 
+}
+
+.tab-list li a span 
+{ 
+    display: inline-block; 
+}
+
+.toolbox .handle, 
+.toolbox .help-icon,
+.toolbox .help-text,
+.toolbox .required,
+.toolbox .remove
+{
+    display: none;
+}

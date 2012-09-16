@@ -1,0 +1,12 @@
+{% extends 'zodb_admin/base.html' %}
+
+{% block content %}
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.name }}
+        {% if form.fields.base.choices %}
+            {{ form.base }}
+        {% endif %}
+        <input type="submit" value="Create the form" />
+    </form>
+{% endblock %}
