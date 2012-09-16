@@ -315,8 +315,9 @@ $(document).ready(function() {
             'tabs': [],
         };
 
-        $('.fieldset').each(function() {
-            var id = $(this).parents('.ui-tabs-panel').attr('id');
+        $('.tab-list li a').each(function() {
+            var fieldset = $($(this).attr('href')).find('.fieldset');
+            var id = fieldset.parents('.ui-tabs-panel').attr('id');
             var name = $('a[href="#'+id+'"] .name').html();
 
             var tab = {
@@ -324,7 +325,7 @@ $(document).ready(function() {
                 fields: [],
             };
 
-            $(this).find('.field').each(function() {
+            fieldset.find('.field').each(function() {
                 tab.fields.push({
                     name: $.trim($(this).data('name')),
                     kind: $.trim($(this).data('kind')),
