@@ -274,7 +274,24 @@ $(document).ready(function() {
     $('.tab-list .remove').click(function() {
         var name = $(this).parents('li').find('.name').html();
         var message = "{% trans 'Are you sure you want to delete tab' %}";
-        message += ' "' + name + '"';
+        message += ' "' + name + '" ?';
+        message += "\n{% trans 'This action is not revertible. To confirm, type the name of the tab:' %}";
+
+        var doDelete = '';
+        while(doDelete != name) {
+            if (doDelete == null)
+                return;
+
+            doDelete = prompt(message);
+        }
+
+        var id = $(this).parents('li').find('a').attr('href');
+        $(id).remove();
+        $(this).parents('li').remove();
+
+        if ($('.ui-state-active').length == 0) {
+            $('.tab-list a:first').click();
+        }
     });
 
     $('.save-form').click(function() {
