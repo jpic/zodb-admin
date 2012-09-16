@@ -45,7 +45,7 @@
                     <td class="required">
                         <input type="checkbox" {% if field.required %}checked="checked"{% endif %} />
                     </td>
-                    <td class="remove" style="display: none">
+                    <td class="remove">
                         <span class="ui-icon ui-icon-circle-close"></span>
                     </td>
                     <td class="verbose-name" contenteditable="true">
@@ -317,6 +317,12 @@ $(document).ready(function() {
 
         $('.tab-list li a').each(function() {
             var fieldset = $($(this).attr('href')).find('.fieldset');
+
+            if (!fieldset.length) {
+                return;
+            }
+            console.log(fieldset)
+
             var id = fieldset.parents('.ui-tabs-panel').attr('id');
             var name = $('a[href="#'+id+'"] .name').html();
 

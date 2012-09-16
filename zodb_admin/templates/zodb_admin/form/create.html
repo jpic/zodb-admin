@@ -1,12 +1,26 @@
 {% extends 'zodb_admin/base.html' %}
 
+{% load crispy_forms_tags %}
+
 {% block content %}
     <form method="post" action="">
         {% csrf_token %}
-        {{ form.name }}
-        {% if form.fields.base.choices %}
-            {{ form.base }}
-        {% endif %}
+        {{ form|crispy }}
         <input type="submit" value="Create the form" />
     </form>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_catalog').yourlabsAutocomplete({
+            url: '{% url autocomplete_light_autocomplete 'CatalogAutocomplete' %}',
+            choiceSelector: '[data-value]',
+        }).input.bind('selectChoice', function(e, choice, autocomplete) {
+            $(this).val(choice.data('value'));
+        });
+
+        if ($('select[name=base] option').length == 0) {
+            $('#div_id_base').hide();
+        }
+    });
+    </script>
 {% endblock %}

@@ -42,12 +42,18 @@ class Model(Persistent):
 
 
 class Form(Model):
-    def __init__(self, name, tabs=None, inlines=None):
+    def __init__(self, name, catalog, tabs=None, inlines=None):
+        if not isinstance(name, (str, unicode)):
+            raise Exception('Form requires a name.')
+        if not isinstance(catalog, Catalog):
+            raise Exception('Form requires a catalog.')
+
         if tabs is None:
             tabs = []
         if inlines is None:
             inlines = []
 
+        self.catalog = catalog
         self.name = name
         self.tabs = tabs
         self.inlines = inlines
@@ -167,15 +173,17 @@ class Field(object):
     def __unicode__(self):
         return self.name
 
-#class Catalog(OOBTree, Model):
-#    def __init__(self, name):
-#        OOBTree.
-#        self.name = name
-#        self.objects = OOBTree()
-#
-#
-#class Object(Model):
-#    def __init__(self, catalog, name, fields):
-#        self.catalog = catalog
-#        self.name = fields['name']
-#        self.fields = fields
+
+class Catalog(Model):
+    def __init__(self, name):
+        if not isinstance(name, (str, unicode)):
+            raise Exception('Catalog requires a name.')
+        self.name = name
+        self.objects = OOBTree()
+
+
+class Object(Model):
+    def __init__(self, catalog, name, fields):
+        self.catalog = catalog
+        self.name = fields['name']
+        self.fields = fields
