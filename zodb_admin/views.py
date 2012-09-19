@@ -1,21 +1,42 @@
-import copy
 import urllib
+import copy
 
 from django import http
 from django.utils import simplejson
 from django.views import generic
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.formtools.wizard.views import SessionWizardView
+from django.core.urlresolvers import reverse
 
-from models import Form, Field
-from forms import FormCreateForm, ObjectCreateForm
+import transaction
+
+from forms import FormCreateForm, CatalogCreateForm
+from models import Catalog, Form, Field, get_object_map
+
+
+class CatalogCreateView(generic.FormView):
+    form_class = CatalogCreateForm
+    template_name = 'zodb_admin/base_form.html'
+
+    def form_valid(self, form):
+        catalog = form.save()
+        Catalog.db[catalog.name] = catalog
+        transaction.commit()
+        return http.HttpResponseRedirect(reverse('zodb_admin:form_create')
+                + '?' + urllib.urlencode({'catalog': catalog.name}))
 
 
 class FormCreateView(generic.FormView):
-    template_name = 'zodb_admin/form/create.html'
     form_class = FormCreateForm
+    template_name = 'zodb_admin/base_form.html'
+
+    def get_initial(self):
+        return {'catalog': self.request.GET.get('catalog')}
 
     def form_valid(self, form):
         form = form.save()
+        Form.db[form.name] = form
+        transaction.commit()
         return http.HttpResponseRedirect(form.get_update_url())
 
 
@@ -32,23 +53,10 @@ class FormUpdateView(generic.TemplateView):
         form_dict = simplejson.loads(self.request.POST['form'])
         form = Form.db[kwargs['name']]
         form.update_from_dict(form_dict)
-        form.save()
+        transaction.commit()
 
         return http.HttpResponse(_(u'Form updated with success'))
 
 
-class ObjectCreateView(generic.FormView):
-    template_name = 'zodb_admin/object/create.html'
-    form_class = ObjectCreateForm
-
-    def form_valid(self, form):
-        obj = Object(form.cleaned_data['catalog'], form.cleaned_data['name']
-            ).save()
-
-        form = form.save()
-
-        return http.HttpResponseRedirect(form.get_update_url() + query)
-
-
-class ObjectUpdateView(generic.TemplateView):
+class RecordUpdateView(generic.TemplateView):
     template_name = 'zodb_admin/object/update.html'

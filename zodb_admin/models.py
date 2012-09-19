@@ -2,7 +2,10 @@ from importlib import import_module
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
+
 from crispy_forms.layout import Layout, Fieldset
+from zodb_relations import ObjectMap
 
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
@@ -10,10 +13,22 @@ from BTrees.OOBTree import OOBTree
 from persistent import Persistent
 import transaction
 
-ZODB_STORAGE = FileStorage('Data.fs')
-ZODB_DB = DB(ZODB_STORAGE)
-ZODB_CONNECTION = ZODB_DB.open()
-ZODB_ROOT = ZODB_CONNECTION.root()
+
+def get_zodb_root():
+    storage = FileStorage(settings.ZODB_FILENAME)
+    db = DB(storage)
+    connection = db.open()
+    return connection.root()
+ZODB_ROOT = get_zodb_root()
+
+
+def get_object_map():
+    try:
+        return ZODB_ROOT['object_map']
+    except KeyError:
+        ZODB_ROOT['object_map'] = ObjectMap()
+    return ZODB_ROOT['object_map']
+OBJECT_MAP = get_object_map()
 
 
 class ClassProperty(property):
@@ -32,28 +47,18 @@ class Model(Persistent):
             transaction.commit()
         return cls.db
 
-    def save(self):
-        self.db[self.name] = self
-        transaction.commit()
-        return self
-
     def __unicode__(self):
         return self.name
 
 
 class Form(Model):
-    def __init__(self, name, catalog, tabs=None, inlines=None):
-        if not isinstance(name, (str, unicode)):
-            raise Exception('Form requires a name.')
-        if not isinstance(catalog, Catalog):
-            raise Exception('Form requires a catalog.')
+    def __init__(self, name=None, tabs=None, inlines=None):
 
         if tabs is None:
             tabs = []
         if inlines is None:
             inlines = []
 
-        self.catalog = catalog
         self.name = name
         self.tabs = tabs
         self.inlines = inlines
@@ -179,11 +184,24 @@ class Catalog(Model):
         if not isinstance(name, (str, unicode)):
             raise Exception('Catalog requires a name.')
         self.name = name
-        self.objects = OOBTree()
 
 
-class Object(Model):
+class Record(Model):
     def __init__(self, catalog, name, fields):
         self.catalog = catalog
         self.name = fields['name']
         self.fields = fields
+
+    @classmethod
+    def create_urls(self, user):
+        urls = {}
+
+#        for catalog in Catalog.db.values():
+#            url = reverse('zodb_admin:record_create', args=(catalog.name,))
+#            urls[url] = catalog
+
+        return urls
+
+    def get_update_url(self):
+        return reverse('zodb_admin:record_update', args=(self.catalog.name,
+            self.name))

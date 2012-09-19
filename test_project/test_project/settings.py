@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.formtools',
     'django.contrib.admin',
     'zodb_admin',
     'autocomplete_light',
@@ -177,3 +178,5 @@ LOGGING = {
         },
     }
 }
+
+ZODB_FILENAME = os.path.join(PROJECT_ROOT, 'Data.fs')

@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load i18n %}
+{% load i18n zodb_admin_tags %}
 
 {% block title %}{{ title }} | {% trans 'Form builder test project' %}{% endblock %}
 
@@ -20,4 +20,27 @@
         padding-left: 0;
     }
 </style>
+{% endblock %}
+
+{% block userlinks %}
+{{ block.super }}
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+        {% trans 'Create record' %}
+        <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+    {% with urls=request.user|zodb_create_urls %}
+    {% for href, catalog in urls.items %}
+        <li>
+            <a href="{{ href }}">
+                {% trans 'Create' %} {{ catalog.name }}
+            </a>
+            <ul class="dropdown-menu">
+            </ul>
+        </li>
+    {% endfor %}
+    {% endwith %}
+    </ul>
+</li>
 {% endblock %}

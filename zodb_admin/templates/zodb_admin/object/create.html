@@ -1,0 +1,8 @@
+{% extends 'zodb_admin/base.html' %}
+
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block content %}
+{{ form|crispy }}
+{% endblock %}
