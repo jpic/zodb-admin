@@ -30,6 +30,12 @@ class FormCreateView(generic.FormView):
     form_class = FormCreateForm
     template_name = 'zodb_admin/base_form.html'
 
+    def get(self, request, *args, **kwargs):
+        if not len(Catalog.db.keys()):
+            return http.HttpResponseRedirect(
+                    reverse('zodb_admin:catalog_create'))
+        return super(FormCreateView, self).get(request, *args, **kwargs)
+
     def get_initial(self):
         return {'catalog': self.request.GET.get('catalog')}
 
