@@ -4,9 +4,7 @@ import transaction
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 
-from zodb_relations import ObjectMap
-
-from models import Form, Catalog, get_object_map
+from models import Form, Catalog, OBJECT_MAP
 
 
 class CatalogCreateForm(forms.Form):
@@ -38,14 +36,13 @@ class CatalogCreateForm(forms.Form):
 
     def save(self):
         catalog = Catalog(name=self.cleaned_data['name'])
-        get_object_map().add(catalog)
+        OBJECT_MAP.add(catalog)
 
         parent = self.cleaned_data.get('parent', None)
         if parent:
             parent = Catalog.db[parent]
 
-            object_map = get_object_map()
-            object_map.connect(parent, catalog, 'children')
+            OBJECT_MAP.connect(parent, catalog, 'children')
 
         Catalog.db[catalog.name] = catalog
         transaction.commit()
@@ -76,12 +73,11 @@ class FormCreateForm(forms.Form):
 
     def save(self):
         form = Form(name=self.cleaned_data['name'])
-        get_object_map().add(form)
+        OBJECT_MAP.add(form)
 
         catalog = Catalog.db[self.cleaned_data['catalog']]
 
-        object_map = get_object_map()
-        object_map.connect(catalog, form, 'forms')
+        OBJECT_MAP.connect(catalog, form, 'forms')
 
         Form.db[form.name] = form
         transaction.commit()
