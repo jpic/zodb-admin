@@ -20,8 +20,6 @@ class CatalogCreateView(generic.FormView):
 
     def form_valid(self, form):
         catalog = form.save()
-        Catalog.db[catalog.name] = catalog
-        transaction.commit()
         return http.HttpResponseRedirect(reverse('zodb_admin:form_create')
                 + '?' + urllib.urlencode({'catalog': catalog.name}))
 
@@ -41,8 +39,6 @@ class FormCreateView(generic.FormView):
 
     def form_valid(self, form):
         form = form.save()
-        Form.db[form.name] = form
-        transaction.commit()
         return http.HttpResponseRedirect(form.get_update_url())
 
 

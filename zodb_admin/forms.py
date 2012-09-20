@@ -47,6 +47,8 @@ class CatalogCreateForm(forms.Form):
             object_map = get_object_map()
             object_map.connect(parent, catalog, 'children')
 
+        Catalog.db[catalog.name] = catalog
+        transaction.commit()
         return catalog
 
 
@@ -80,5 +82,8 @@ class FormCreateForm(forms.Form):
 
         object_map = get_object_map()
         object_map.connect(catalog, form, 'forms')
+
+        Form.db[form.name] = form
+        transaction.commit()
 
         return form
