@@ -2,66 +2,23 @@ from importlib import import_module
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 
 from crispy_forms.layout import Layout, Fieldset
-from zodb_relations import ObjectMap
 
-from ZODB.FileStorage import FileStorage
-from ZODB.DB import DB
-from BTrees.OOBTree import OOBTree
-from persistent import Persistent
-import transaction
-
-
-def get_zodb_root():
-    storage = FileStorage(settings.ZODB_FILENAME)
-    db = DB(storage)
-    connection = db.open()
-    return connection.root()
-ZODB_ROOT = get_zodb_root()
-
-
-def get_object_map():
-    try:
-        return ZODB_ROOT['object_map']
-    except KeyError:
-        ZODB_ROOT['object_map'] = ObjectMap()
-    return ZODB_ROOT['object_map']
-OBJECT_MAP = get_object_map()
-
-
-class ClassProperty(property):
-    def __get__(self, cls, owner):
-        return self.fget.__get__(None, owner)()
-
-
-class Model(Persistent):
-    @ClassProperty
-    @classmethod
-    def db(cls):
-        try:
-            return ZODB_ROOT[cls.__name__.lower()]
-        except KeyError:
-            ZODB_ROOT[cls.__name__.lower()] = OOBTree()
-            transaction.commit()
-        return cls.db
-
-    def __unicode__(self):
-        return self.name
+from zodb_light.models import Model, RelationDescriptor
 
 
 class Form(Model):
+    catalog = RelationDescriptor('self',
+            'zodb_admin.models.Catalog', 'tree', True)
+
     def __init__(self, name=None, tabs=None, inlines=None):
+        super(Form, self).__init__(name)
 
         if tabs is None:
             tabs = []
         if inlines is None:
             inlines = []
-
-        self.name = name
-        self.tabs = tabs
-        self.inlines = inlines
 
     def get_update_url(self):
         return reverse('zodb_admin:form_update', args=[self.name])
@@ -90,8 +47,6 @@ class Form(Model):
             tab.update_from_dict(tab_data)
             self.tabs.append(tab)
             order += 1
-
-        transaction.commit()
 
 
 class Tab(object):
@@ -180,10 +135,12 @@ class Field(object):
 
 
 class Catalog(Model):
-    def __init__(self, name):
-        if not isinstance(name, (str, unicode)):
-            raise Exception('Catalog requires a name.')
-        self.name = name
+    parent = RelationDescriptor('zodb_admin.models.Catalog',
+            'self', 'tree', True)
+    children = RelationDescriptor('self',
+            'zodb_admin.models.Catalog', 'tree')
+    forms = RelationDescriptor('self',
+            'zodb_admin.models.Form', 'tree')
 
 
 class Record(Model):

@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 import transaction
 
 from forms import FormCreateForm, CatalogCreateForm
-from models import Catalog, Form, Field, get_object_map
+from models import Catalog, Form, Field
 
 
 class CatalogCreateView(generic.FormView):
@@ -48,14 +48,13 @@ class FormUpdateView(generic.TemplateView):
     def get_context_data(self, *args, **kwargs):
         return {
             'KIND_CHOICES': Field.KIND_CHOICES,
-            'form': Form.db[kwargs['name']],
+            'form': Form.get_by_name(kwargs['name']),
         }
 
     def post(self, *args, **kwargs):
         form_dict = simplejson.loads(self.request.POST['form'])
-        form = Form.db[kwargs['name']]
+        form = Form.get_by_name(kwargs['name'])
         form.update_from_dict(form_dict)
-        transaction.commit()
 
         return http.HttpResponse(_(u'Form updated with success'))
 

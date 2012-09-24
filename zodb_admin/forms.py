@@ -4,7 +4,7 @@ import transaction
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 
-from models import Form, Catalog, OBJECT_MAP
+from models import Form, Catalog
 
 
 class CatalogCreateForm(forms.Form):
@@ -18,7 +18,7 @@ class CatalogCreateForm(forms.Form):
             self.fields.pop('parent')
         else:
             self.fields['parent'].choices = [(u'', _(u'None'))]
-            self.fields['parent'].choices += [(n, n) for n in Catalog.db.keys()]
+            self.fields['parent'].choices += [(k, n) for k, n in Catalog.db.items()]
 
     def clean_name(self):
         name = self.cleaned_data['name']
@@ -29,23 +29,18 @@ class CatalogCreateForm(forms.Form):
 
     def clean_parent(self):
         parent = self.cleaned_data['parent']
-        if parent and parent not in Catalog.db.keys():
+        if parent and not Catalog.exists(parent):
             raise forms.ValidationError(
                     _(u'This catalog does not exist'))
         return parent
 
     def save(self):
         catalog = Catalog(name=self.cleaned_data['name'])
-        OBJECT_MAP.add(catalog)
 
         parent = self.cleaned_data.get('parent', None)
         if parent:
-            parent = Catalog.db[parent]
+            catalog.parent = Catalog.get(parent)
 
-            OBJECT_MAP.connect(parent, catalog, 'children')
-
-        Catalog.db[catalog.name] = catalog
-        transaction.commit()
         return catalog
 
 
@@ -55,11 +50,11 @@ class FormCreateForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(FormCreateForm, self).__init__(*args, **kwargs)
-        self.fields['catalog'].choices += [(n, n) for n in Catalog.db.keys()]
+        self.fields['catalog'].choices += [(k, n) for k, n in Catalog.db.items()]
 
     def clean_catalog(self):
         catalog = self.cleaned_data['catalog']
-        if catalog not in Catalog.db.keys():
+        if not Catalog.exists(catalog):
             raise forms.ValidationError(
                     _(u'This catalog does not exist'))
         return catalog
@@ -73,13 +68,5 @@ class FormCreateForm(forms.Form):
 
     def save(self):
         form = Form(name=self.cleaned_data['name'])
-        OBJECT_MAP.add(form)
-
-        catalog = Catalog.db[self.cleaned_data['catalog']]
-
-        OBJECT_MAP.connect(catalog, form, 'forms')
-
-        Form.db[form.name] = form
-        transaction.commit()
-
+        form.catalog = Catalog.get(self.cleaned_data['catalog'])
         return form
