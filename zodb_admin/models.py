@@ -142,6 +142,14 @@ class Catalog(Model):
     forms = RelationDescriptor('self',
             'zodb_admin.models.Form', 'form_catalog')
 
+    def __unicode__(self):
+        bits = [self.name]
+        catalog = self
+        while catalog.parent:
+            bits.append(catalog.parent.name)
+            catalog = catalog.parent
+        bits.reverse()
+        return u' / '.join(bits)
 
 class Record(Model):
     def __init__(self, catalog, name, fields):
