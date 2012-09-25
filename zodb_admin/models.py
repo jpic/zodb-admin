@@ -10,7 +10,7 @@ from zodb_light.models import Model, RelationDescriptor
 
 class Form(Model):
     catalog = RelationDescriptor('self',
-            'zodb_admin.models.Catalog', 'tree', True)
+            'zodb_admin.models.Catalog', 'form_catalog', True)
 
     def __init__(self, name=None, tabs=None, inlines=None):
         super(Form, self).__init__(name)
@@ -140,7 +140,7 @@ class Catalog(Model):
     children = RelationDescriptor('self',
             'zodb_admin.models.Catalog', 'tree')
     forms = RelationDescriptor('self',
-            'zodb_admin.models.Form', 'tree')
+            'zodb_admin.models.Form', 'form_catalog')
 
 
 class Record(Model):
